@@ -29,7 +29,11 @@ class Lexer:
         self.skip_whitespace()
 
         if self._ch == '=':
-            token = Token(TokenType.ASSIGN, self._ch)
+            if self.peek_char() == '=':
+                self.read_char()
+                token = Token(TokenType.EQ, '==')
+            else:
+                token = Token(TokenType.ASSIGN, self._ch)
         elif self._ch == ';':
             token = Token(TokenType.SEMICOLON, self._ch)
         elif self._ch == '(':
@@ -44,6 +48,22 @@ class Lexer:
             token = Token(TokenType.COMMA, self._ch)
         elif self._ch == '+':
             token = Token(TokenType.PLUS, self._ch)
+        elif self._ch == '-':
+            token = Token(TokenType.MINUS, self._ch)
+        elif self._ch == '!':
+            if self.peek_char() == '=':
+                self.read_char()
+                token = Token(TokenType.NOT_EQ, '!=')
+            else:
+                token = Token(TokenType.BANG, self._ch)
+        elif self._ch == '/':
+            token = Token(TokenType.SLASH, self._ch)
+        elif self._ch == '*':
+            token = Token(TokenType.ASTERISK, self._ch)
+        elif self._ch == '<':
+            token = Token(TokenType.LT, self._ch)
+        elif self._ch == '>':
+            token = Token(TokenType.GT, self._ch)
         elif self._ch == None:
             token = Token(TokenType.EOF, self._ch)
         else:
@@ -64,7 +84,7 @@ class Lexer:
             self.read_char()
 
     def is_letter(self, character: str) -> bool:
-        return (character in string.ascii_letters) or (character == '_')
+        return self._ch and ((character in string.ascii_letters) or (character == '_'))
 
     def read_identifier(self) -> str:
         position = self._position
@@ -79,3 +99,9 @@ class Lexer:
             self.read_char()
 
         return self._input[position:self._position]
+
+    def peek_char(self) -> str:
+        if self._read_position >= len(self._input):
+            return None
+        else:
+            return self._input[self._read_position]
