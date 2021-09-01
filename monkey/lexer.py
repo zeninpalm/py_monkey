@@ -3,7 +3,7 @@ import string
 from .token import TokenType, Token, lookup_ident
 
 class Lexer:
-    def __init__(self, input: str):
+    def __init__(self, input: str = ""):
         self._input = input
         self._position = 0
         self._read_position = 0
