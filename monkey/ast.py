@@ -87,3 +87,18 @@ class ExpressionStatement(Statement):
             return str(self.expression)
 
         return ''
+
+
+class IntegerLiteral(Expression):
+    def __init__(self, token: Token, value: int):
+        self.token = token
+        self.value = value
+
+    def expression_node(self):
+        return None
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return self.token.literal

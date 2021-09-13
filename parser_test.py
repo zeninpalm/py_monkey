@@ -63,6 +63,19 @@ def test_identifier_expression():
     assert ident.value == "foobar"
     assert ident.token_literal() == "foobar"
 
+def test_integer_literal_expression():
+    input = "5"
+
+    l = Lexer(input)
+    p = Parser(l)
+    program = p.parse_program()
+    assert len(program.statements) == 1
+
+    stmt: AST.ExpressionStatement = program.statements[0]
+    literal: AST.IntegerLiteral = stmt.expression
+    assert literal.value == 5
+    assert literal.token_literal() == "5"
+
 
 if __name__ == '__main__':
     test_let_statements()

@@ -25,6 +25,7 @@ class Parser:
         self.infix_parse_fns = {}
 
         self.register_prefix(TokenType.IDENT, self.parse_identifier)
+        self.register_prefix(TokenType.INT, self.parse_integer_literal)
 
         self.next_token()
         self.next_token()
@@ -94,6 +95,10 @@ class Parser:
 
     def parse_identifier(self) -> ast.Expression:
         return Identifier(self.cur_token, self.cur_token.literal)
+
+    def parse_integer_literal(self) -> ast.Expression:
+        value = int(self.cur_token.literal)
+        return ast.IntegerLiteral(self.cur_token, value)
 
     def cur_token_is(self, t: TokenType) -> bool:
         return self.cur_token.token_type == t

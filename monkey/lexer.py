@@ -95,7 +95,7 @@ class Lexer:
 
     def read_number(self) -> str:
         position = self._position
-        while self._ch in string.digits:
+        while self._ch and (self._ch in string.digits):
             self.read_char()
 
         return self._input[position:self._position]
