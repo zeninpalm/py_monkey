@@ -23,6 +23,12 @@ class Program(Node):
         else:
             return ''
 
+    def __str__(self) -> str:
+        out = ''
+        for s in self.statements:
+            out += str(s)
+        return out
+
 class Identifier(Expression):
     def __init__(self, token: Token, value: str) -> None:
         self.token = token
@@ -60,3 +66,24 @@ class ReturnStatement(Statement):
 
     def token_literal(self) -> str:
         return self.token.literal
+
+    def __str__(self) -> str:
+        return f"{self.token_literal()} {str(self.return_value)}"
+
+
+class ExpressionStatement(Statement):
+    def __init__(self, token: Token = None, expression: Expression = None):
+        self.token = token
+        self.expression = expression
+
+    def statement_node(self):
+        return None
+
+    def token_literal(self) -> str:
+        return self.token.token_literal()
+
+    def __str__(self) -> str:
+        if self.expression:
+            return str(self.expression)
+
+        return ''

@@ -1,13 +1,30 @@
+from enum import IntEnum, auto
+from typing import Callable
+
 from . import ast
 from .ast import Program, ReturnStatement, Statement, LetStatement, Identifier
 from .lexer import Lexer
 from .token import Token, TokenType
+
+class Precedence(IntEnum):
+    LOWEST=auto()
+    EQUALS=auto()
+    LESSGREATER=auto()
+    SUM=auto()
+    PRODUCT=auto()
+    PREFIX=auto()
+    CALL=auto()
+
 
 class Parser:
     def __init__(self, lexer: Lexer):
         self.lexer = lexer
         self.cur_token: Token = None
         self.peek_token: Token = None
+        self.prefix_parse_fns = {}
+        self.infix_parse_fns = {}
+
+        self.register_prefix(TokenType.IDENT, self.parse_identifier)
 
         self.next_token()
         self.next_token()
@@ -32,7 +49,7 @@ class Parser:
         elif self.cur_token.token_type == TokenType.RETURN:
             return self.parse_return_statement()
         else:
-            return None
+            return self.parse_expression_statement()
 
     def parse_let_statement(self) -> LetStatement:
         stmt = LetStatement(self.cur_token, None, None)
@@ -59,6 +76,25 @@ class Parser:
         
         return stmt
 
+    def parse_expression_statement(self) -> ast.ExpressionStatement:
+        stmt = ast.ExpressionStatement(self.cur_token)
+        stmt.expression = self.parse_expression(Precedence.LOWEST)
+
+        if self.peek_token_is(TokenType.SEMICOLON):
+            self.next_token()
+
+        return stmt
+
+    def parse_expression(self, precedence: int) -> ast.Expression:
+        prefix = self.prefix_parse_fns[self.cur_token.token_type]
+        if not prefix:
+            return None
+        left_exp = prefix()
+        return left_exp
+
+    def parse_identifier(self) -> ast.Expression:
+        return Identifier(self.cur_token, self.cur_token.literal)
+
     def cur_token_is(self, t: TokenType) -> bool:
         return self.cur_token.token_type == t
     
@@ -71,3 +107,9 @@ class Parser:
             return True
         else:
             return False
+    
+    def register_prefix(self, token_type: TokenType, prefix_parse_fn: Callable):
+        self.prefix_parse_fns[token_type] = prefix_parse_fn
+
+    def register_infix(self, token_type: TokenType, infix_parse_fn: Callable):
+        self.infix_parse_fns[token_type] = infix_parse_fn

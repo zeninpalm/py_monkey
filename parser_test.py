@@ -50,6 +50,19 @@ return 838383;
         statement = program.statements[i]
         assert statement.token_literal() == "return"
 
+def test_identifier_expression():
+    input = "foobar"
+
+    l = Lexer(input)
+    p = Parser(l)
+    program = p.parse_program()
+    assert len(program.statements) == 1
+
+    stmt: AST.ExpressionStatement = program.statements[0]
+    ident: AST.Identifier = stmt.expression
+    assert ident.value == "foobar"
+    assert ident.token_literal() == "foobar"
+
 
 if __name__ == '__main__':
     test_let_statements()
