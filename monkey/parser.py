@@ -2,7 +2,7 @@ from enum import IntEnum, auto
 from typing import Callable
 
 from . import ast
-from .ast import Program, ReturnStatement, Statement, LetStatement, Identifier
+from .ast import PrefixExpression, Program, ReturnStatement, Statement, LetStatement, Identifier
 from .lexer import Lexer
 from .token import Token, TokenType
 
@@ -26,6 +26,8 @@ class Parser:
 
         self.register_prefix(TokenType.IDENT, self.parse_identifier)
         self.register_prefix(TokenType.INT, self.parse_integer_literal)
+        self.register_prefix(TokenType.BANG, self.parse_prefix_expression)
+        self.register_prefix(TokenType.MINUS, self.parse_prefix_expression)
 
         self.next_token()
         self.next_token()
@@ -92,6 +94,13 @@ class Parser:
             return None
         left_exp = prefix()
         return left_exp
+
+    def parse_prefix_expression(self) -> ast.Expression:
+        token = self.cur_token
+        operator = self.cur_token.literal
+        self.next_token()
+
+        return PrefixExpression(token, operator, self.parse_expression(Precedence.PREFIX))
 
     def parse_identifier(self) -> ast.Expression:
         return Identifier(self.cur_token, self.cur_token.literal)

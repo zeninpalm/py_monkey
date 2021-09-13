@@ -76,6 +76,23 @@ def test_integer_literal_expression():
     assert literal.value == 5
     assert literal.token_literal() == "5"
 
+def test_parsing_prefix_expressions():
+    prefix_tests = [
+        ("!5;", "!", 5),
+        ("-15;", "-", 15),
+    ]
+
+    for test in prefix_tests:
+        l = Lexer(test[0])
+        p = Parser(l)
+        program = p.parse_program()
+        assert len(program.statements) == 1
+
+        stmt: AST.ExpressionStatement = program.statements[0]
+        exp: AST.PrefixExpression = stmt.expression
+        assert exp.operator == test[1]
+        assert exp.right.value == test[2]
+
 
 if __name__ == '__main__':
     test_let_statements()
