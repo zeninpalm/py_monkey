@@ -48,3 +48,15 @@ class LetStatement(Statement):
 
     def __str__(self):
         return f"LetStatement: {self.token} - {self.name.token_literal()} - {self.value}"
+
+
+class ReturnStatement(Statement):
+    def __init__(self, token: Token, return_value: Expression = None):
+        self.token = token
+        self.return_value = return_value
+
+    def statement_node(self) -> Node:
+        return None
+
+    def token_literal(self) -> str:
+        return self.token.literal

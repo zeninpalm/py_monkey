@@ -1,4 +1,5 @@
-from .ast import Program, Statement, LetStatement, Identifier
+from . import ast
+from .ast import Program, ReturnStatement, Statement, LetStatement, Identifier
 from .lexer import Lexer
 from .token import Token, TokenType
 
@@ -28,6 +29,8 @@ class Parser:
     def parse_statement(self) -> Statement:
         if self.cur_token.token_type == TokenType.LET:
             return self.parse_let_statement()
+        elif self.cur_token.token_type == TokenType.RETURN:
+            return self.parse_return_statement()
         else:
             return None
 
@@ -42,6 +45,15 @@ class Parser:
             return None
         stmt.name = name
         
+        while not self.cur_token_is(TokenType.SEMICOLON):
+            self.next_token()
+        
+        return stmt
+
+    def parse_return_statement(self) -> ReturnStatement:
+        stmt = ast.ReturnStatement(self.cur_token)
+        self.next_token()
+
         while not self.cur_token_is(TokenType.SEMICOLON):
             self.next_token()
         

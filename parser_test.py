@@ -31,6 +31,24 @@ def match_let_statement(stmt: AST.Statement, name: str) -> bool:
     assert let_stmt.name.token_literal() == name
     return True
 
+def test_return_statements():
+    input = r'''
+return 5;
+return 10;
+return 838383;
+'''
+
+    l = Lexer(input)
+    p = Parser(l)
+
+    program = p.parse_program()
+    assert program is not None
+    assert len(program.statements) == 3
+
+    tests = ["x", "y", "foobar"]
+    for i, tt in enumerate(tests):
+        statement = program.statements[i]
+        assert statement.token_literal() == "return"
 
 
 if __name__ == '__main__':
