@@ -118,3 +118,33 @@ class PrefixExpression(Expression):
 
     def __str__(self) -> str:
         return f"({self.operator}{self.right})"
+
+class InfixExpression(Expression):
+    def __init__(self, token: Token, left: Expression, operator: str, right: Expression = None):
+        self.token = token
+        self.operator = operator
+        self.right = right
+        self.left = left
+
+    def expression_node(self):
+        return None
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return f"({self.left} {self.operator} {self.right})"
+
+class Boolean(Expression):
+    def __init__(self, token: Token, value: bool):
+        self.token = token
+        self.value = value
+
+    def expression_node(self):
+        return None
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return self.token.literal

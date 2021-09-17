@@ -1,3 +1,5 @@
+import pytest
+
 import monkey.ast as AST
 from monkey.lexer import Lexer
 from monkey.parser import Parser
@@ -92,6 +94,71 @@ def test_parsing_prefix_expressions():
         exp: AST.PrefixExpression = stmt.expression
         assert exp.operator == test[1]
         assert exp.right.value == test[2]
+
+def test_parsing_infix_expression():
+    infix_tests = [
+        # input, left_value, operator, right_value
+        ("5 + 6;", 5, "+", 6),
+        ("5 - 5;", 5, "-", 5),
+        ("5 * 5;", 5, "*", 5),
+        ("5 / 5;", 5, "/", 5),
+        ("5 > 5;", 5, ">", 5),
+        ("5 < 5;", 5, "<", 5),
+        ("5 == 5;", 5, "==", 5),
+        ("5 != 5;", 5, "!=", 5),
+    ]
+
+    for test in infix_tests:
+        l = Lexer(test[0])
+        p = Parser(l)
+        program = p.parse_program()
+
+        assert len(program.statements) == 1
+        
+        stmt: AST.ExpressionStatement = program.statements[0]
+        exp: AST.InfixExpression = stmt.expression
+        assert test_integer_literal(exp.left, test[1])
+
+        assert exp.operator == test[2]
+        assert test_integer_literal(exp.right, test[3])
+
+@pytest.mark.skip(reason="Don't test helper function")
+def test_integer_literal(exp: AST.Expression, value: int):
+    integer: AST.IntegerLiteral = exp
+    if integer.value != value:
+        return False
+    if integer.token_literal() != str(value):
+        return False
+    return True
+
+@pytest.mark.skip(reason="Don't test helper function")
+def test_identifier(exp: AST.Expression, value: str):
+    ident = exp.identifier
+    if ident.value != value:
+        return False
+    if ident.token_literal() != value:
+        return False
+    return True
+
+@pytest.mark.skip(reason="Don't test helper function")
+def test_literal_expression(exp: AST.Expression, value: str):
+    if value.isnumeric():
+        return test_integer_literal_expression(exp, int(value))
+    else:
+        return test_identifier(exp, value)
+
+@pytest.mark.skip(reason="Don't test helper function")
+def test_infix_expression(exp: AST.Expression, left: any, operator: str, right: any):
+    if not test_literal_expression(exp.left, left):
+        return False
+
+    if not exp.operator == operator:
+        return False
+
+    if not test_literal_expression(exp.right, right):
+        return False
+
+    return True
 
 
 if __name__ == '__main__':
