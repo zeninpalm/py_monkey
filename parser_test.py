@@ -106,6 +106,9 @@ def test_parsing_infix_expression():
         ("5 < 5;", 5, "<", 5),
         ("5 == 5;", 5, "==", 5),
         ("5 != 5;", 5, "!=", 5),
+        ("true == true", True, "==", True),
+        ("true != false", True, "!=", False),
+        ("false == false", False, "==", False),
     ]
 
     for test in infix_tests:
@@ -121,6 +124,9 @@ def test_parsing_infix_expression():
 
         assert exp.operator == test[2]
         assert test_integer_literal(exp.right, test[3])
+
+        if not test_infix_expression(exp, test[1], test[2], test[3]):
+            return
 
 def test_parsing_operator_precedence():
     infix_tests = [
@@ -142,6 +148,10 @@ def test_parsing_operator_precedence():
             "((5 < 4) != (3 > 4))"),
         ("3 + 4 * 5 == 3 * 1 + 4 * 5",
             "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"),
+        ("true", "true"),
+        ("false", "false"),
+        ("3 > 5 == false", "((3 > 5) == false)"),
+        ("3 < 5 == true", "((3 < 5) == true)"),
     ]
 
     for test in infix_tests:
@@ -156,7 +166,7 @@ def test_integer_literal(exp: AST.Expression, value: int):
     integer: AST.IntegerLiteral = exp
     if integer.value != value:
         return False
-    if integer.token_literal() != str(value):
+    if integer.token_literal() != str(value).lower():
         return False
     return True
 
@@ -171,8 +181,10 @@ def test_identifier(exp: AST.Expression, value: str):
 
 @pytest.mark.skip(reason="Don't test helper function")
 def test_literal_expression(exp: AST.Expression, value: str):
-    if value.isnumeric():
-        return test_integer_literal_expression(exp, int(value))
+    if value in ('true', 'false'):
+        return test_boolean_literal(exp, value == 'true')
+    elif isinstance(value, int) or value.isnumeric():
+        return test_integer_literal(exp, int(value))
     else:
         return test_identifier(exp, value)
 
@@ -185,6 +197,18 @@ def test_infix_expression(exp: AST.Expression, left: any, operator: str, right: 
         return False
 
     if not test_literal_expression(exp.right, right):
+        return False
+
+    return True
+
+@pytest.mark.skip(reason="Don't test helper function")
+def test_boolean_literal(exp: AST.Expression, value: bool) -> bool:
+    boolean: AST.Boolean = exp
+
+    if boolean.value != value:
+        return False
+
+    if boolean.token_literal() != ('True' if value else 'false'):
         return False
 
     return True
