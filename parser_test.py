@@ -82,6 +82,8 @@ def test_parsing_prefix_expressions():
     prefix_tests = [
         ("!5;", "!", 5),
         ("-15;", "-", 15),
+        ("!true;", "!", True),
+        ("!false;", "!", False),
     ]
 
     for test in prefix_tests:
