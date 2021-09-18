@@ -40,6 +40,7 @@ class Parser:
         self.register_prefix(TokenType.MINUS, self.parse_prefix_expression)
         self.register_prefix(TokenType.TRUE, self.parse_boolean)
         self.register_prefix(TokenType.FALSE, self.parse_boolean)
+        self.register_prefix(TokenType.LPAREN, self.parse_grouped_expression)
 
         self.register_infix(TokenType.PLUS, self.parse_infix_expression)
         self.register_infix(TokenType.MINUS, self.parse_infix_expression)
@@ -167,6 +168,15 @@ class Parser:
     def peek_token_is(self, t: TokenType) -> bool:
         return self.peek_token.token_type == t
     
+    def parse_grouped_expression(self) -> ast.Expression:
+        self.next_token()
+        exp = self.parse_expression(Precedence.LOWEST)
+
+        if not self.expect_peek(TokenType.RPAREN):
+            return None
+        
+        return exp
+
     def expect_peek(self, t: TokenType) -> bool:
         if self.peek_token_is(t):
             self.next_token()
