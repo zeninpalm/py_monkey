@@ -38,6 +38,8 @@ class Parser:
         self.register_prefix(TokenType.INT, self.parse_integer_literal)
         self.register_prefix(TokenType.BANG, self.parse_prefix_expression)
         self.register_prefix(TokenType.MINUS, self.parse_prefix_expression)
+        self.register_prefix(TokenType.TRUE, self.parse_boolean)
+        self.register_prefix(TokenType.FALSE, self.parse_boolean)
 
         self.register_infix(TokenType.PLUS, self.parse_infix_expression)
         self.register_infix(TokenType.MINUS, self.parse_infix_expression)
@@ -113,11 +115,20 @@ class Parser:
             return None
         left_exp = prefix()
 
+        # precedence: right-binding power
+        # self.peek_precedence: left-binding power
+        # If current token's right-binding power < the next token's left-binding power
+        # Then the current token and the tokens to left of it
+        # All will be sucked by the next token, as its left expression
         while not self.peek_token_is(TokenType.SEMICOLON) and precedence < self.peek_precedence():
+            # Since I'm executing now
+            # It must mean that peek_token has more to power to suck the left exp. in
             infix = self.infix_parse_fns.get(self.peek_token.token_type)
             if not infix:
                 return left_exp
+            # Advance to the peek_token
             self.next_token()
+            # Suck the left_exp in
             left_exp = infix(left_exp)
 
         return left_exp
@@ -136,7 +147,6 @@ class Parser:
             operator=self.cur_token.literal,
             left=left
         )
-        print(f"current token = {self.cur_token}")
         self.next_token()
         exp.right = self.parse_expression(precedence)
         return exp
@@ -147,6 +157,9 @@ class Parser:
     def parse_integer_literal(self) -> ast.Expression:
         value = int(self.cur_token.literal)
         return ast.IntegerLiteral(self.cur_token, value)
+
+    def parse_boolean(self) -> ast.Expression:
+        return ast.Boolean(self.cur_token, self.cur_token_is(TokenType.TRUE))
 
     def cur_token_is(self, t: TokenType) -> bool:
         return self.cur_token.token_type == t

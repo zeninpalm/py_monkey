@@ -39,6 +39,9 @@ class Identifier(Expression):
 
     def token_literal(self) -> str:
         return self.token.literal
+    
+    def __str__(self):
+        return self.value
 
 class LetStatement(Statement):
     def __init__(self, token: Token, identifier: Identifier, value: Expression):

@@ -122,6 +122,35 @@ def test_parsing_infix_expression():
         assert exp.operator == test[2]
         assert test_integer_literal(exp.right, test[3])
 
+def test_parsing_operator_precedence():
+    infix_tests = [
+        # input, left_value, operator, right_value
+        ("-a * b", "((-a) * b)"),
+        ("!-a", "(!(-a))"),
+        ("a + b + c", "((a + b) + c)"),
+        ("a + b -c", "((a + b) - c)"),
+        ("a * b * c", "((a * b) * c)"),
+        ("a * b / c", "((a * b) / c)"),
+        ("a + b / c", "(a + (b / c))"),
+        ("a + b * c + d / e - f", 
+            "(((a + (b * c)) + (d / e)) - f)"),
+        ("3 + 4; -5 * 5",
+            "(3 + 4)((-5) * 5)"),
+        ("5 > 4 == 3 < 4",
+            "((5 > 4) == (3 < 4))"),
+        ("5 < 4 != 3 > 4",
+            "((5 < 4) != (3 > 4))"),
+        ("3 + 4 * 5 == 3 * 1 + 4 * 5",
+            "((3 + (4 * 5)) == ((3 * 1) + (4 * 5)))"),
+    ]
+
+    for test in infix_tests:
+        l = Lexer(test[0])
+        p = Parser(l)
+        program = p.parse_program()
+        
+        assert str(program) == test[1]
+
 @pytest.mark.skip(reason="Don't test helper function")
 def test_integer_literal(exp: AST.Expression, value: int):
     integer: AST.IntegerLiteral = exp
