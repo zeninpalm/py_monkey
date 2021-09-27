@@ -41,6 +41,7 @@ class Parser:
         self.register_prefix(TokenType.TRUE, self.parse_boolean)
         self.register_prefix(TokenType.FALSE, self.parse_boolean)
         self.register_prefix(TokenType.LPAREN, self.parse_grouped_expression)
+        self.register_prefix(TokenType.IF, self.parse_if_expression)
 
         self.register_infix(TokenType.PLUS, self.parse_infix_expression)
         self.register_infix(TokenType.MINUS, self.parse_infix_expression)
@@ -140,6 +141,50 @@ class Parser:
         self.next_token()
 
         return PrefixExpression(token, operator, self.parse_expression(Precedence.PREFIX))
+
+    def parse_if_expression(self):
+        if_token = self.cur_token
+        if not self.expect_peek(TokenType.LPAREN):
+            return None
+
+        self.next_token()
+        condition = self.parse_expression(Precedence.LOWEST)
+
+        if not self.expect_peek(TokenType.RPAREN):
+            return None
+
+        if not self.expect_peek(TokenType.LBRACE):
+            return None
+        
+        consequence = self.parse_block_statement()
+        alternative = None
+        if self.peek_token_is(TokenType.ELSE):
+            self.next_token()
+
+            if not self.expect_peek(TokenType.LBRACE):
+                return None
+            
+            alternative = self.parse_block_statement()
+
+        if not self.cur_token_is(TokenType.RBRACE):
+            return None
+        else:
+            self.next_token()
+
+        return ast.IfExpression(
+            if_token, condition, consequence, alternative
+        )
+
+    def parse_block_statement(self) -> ast.BlockStatement:
+        block = ast.BlockStatement(self.cur_token)
+        self.next_token()
+
+        while not self.cur_token_is(TokenType.RBRACE) and not self.cur_token_is(TokenType.EOF):
+            stmt = self.parse_statement()
+            if stmt:
+                block.statements.append(stmt)
+            self.next_token()
+        return block
 
     def parse_infix_expression(self, left: ast.Expression) -> ast.Expression:
         precedence = self.cur_precedence()

@@ -183,6 +183,21 @@ def test_parsing_operator_precedence():
         
         assert str(program) == test[1]
 
+def test_if_expression():
+    input = 'if (x < y) { x }'
+
+    l = Lexer(input)
+    p = Parser(l)
+    program = p.parse_program()
+
+    assert len(program.statements) == 1
+    exp: AST.IfExpression = program.statements[0].expression
+    test_infix_expression(exp.condition, "x", "<", "y")
+
+    consequence: AST.ExpressionStatement = exp.consequence.statements[0]
+    test_identifier(consequence.expression, "x")
+    assert exp.alternative == None
+
 @pytest.mark.skip(reason="Don't test helper function")
 def test_integer_literal(exp: AST.Expression, value: int):
     integer: AST.IntegerLiteral = exp
@@ -194,7 +209,7 @@ def test_integer_literal(exp: AST.Expression, value: int):
 
 @pytest.mark.skip(reason="Don't test helper function")
 def test_identifier(exp: AST.Expression, value: str):
-    ident = exp.identifier
+    ident = exp
     if ident.value != value:
         return False
     if ident.token_literal() != value:
