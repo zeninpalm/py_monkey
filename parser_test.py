@@ -177,6 +177,18 @@ class ParserTest(unittest.TestCase):
                 "!(true == true)",
                 "(!(true == true))",
             ),
+            (
+                "a + add(b * c) + d",
+                "((a + add((b * c))) + d)",
+            ),
+            (
+                "add(a, b, 1, 2 * 3, 4 + 5, add(6, 7 * 8))",
+                "add(a, b, 1, (2 * 3), (4 + 5), add(6, (7 * 8)))",
+            ),
+            (
+                "add(a + b + c * d / f + g)",
+                "add((((a + b) + ((c * d) / f)) + g))",
+            ),
         ]
 
         for test in infix_tests:
@@ -218,6 +230,22 @@ class ParserTest(unittest.TestCase):
         assert len(exp.body.statements) == 1
         body_stmt = exp.body.statements[0]
         self.test_infix_expression(body_stmt.expression, "x", "+", "y")
+
+    def test_call_expression_parsing(self):
+        input = 'add(1, 2 * 3, 4 + 5);'
+
+        l = Lexer(input)
+        p = Parser(l)
+        program = p.parse_program()
+
+        assert len(program.statements) == 1
+        exp: AST.CallExpression = program.statements[0].expression
+
+        assert self.test_identifier(exp.function, "add")
+        assert len(exp.arguments) == 3
+        assert self.test_literal_expression(exp.arguments[0], 1)
+        assert self.test_infix_expression(exp.arguments[1], 2, "*", 3)
+        assert self.test_infix_expression(exp.arguments[2], 4, "+", 5)
 
     @pytest.mark.skip(reason="Don't test helper function")
     def test_integer_literal(self, exp: AST.Expression, value: int):
