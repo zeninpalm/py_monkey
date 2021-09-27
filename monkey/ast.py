@@ -194,3 +194,22 @@ class IfExpression(Expression):
             out += str(self.alternative)
 
         return out
+
+class FunctionLiteral(Expression):
+    def __init__(self, token: Token, parameters: "list[Identifier]" = [], body: BlockStatement = None):
+        self.token = token
+        self.parameters = parameters
+        self.body = body
+
+    def expression_node(self):
+        return None
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self):
+        params: list[str] = []
+        for p in self.parameters:
+            params.append(str(p))
+
+        return f"{self.token_literal()} ({', '.join(params)}) {{ {str(self.body)} }}"

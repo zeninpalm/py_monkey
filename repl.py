@@ -13,7 +13,6 @@ def start():
 
         tok = lexer.next_token()
         while tok.token_type != TokenType.EOF:
-            print(f"{tok}")
             tok = lexer.next_token()
 
         line = input(PROMPT)

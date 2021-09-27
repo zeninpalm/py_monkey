@@ -42,6 +42,7 @@ class Parser:
         self.register_prefix(TokenType.FALSE, self.parse_boolean)
         self.register_prefix(TokenType.LPAREN, self.parse_grouped_expression)
         self.register_prefix(TokenType.IF, self.parse_if_expression)
+        self.register_prefix(TokenType.FUNCTION, self.parse_function_literal)
 
         self.register_infix(TokenType.PLUS, self.parse_infix_expression)
         self.register_infix(TokenType.MINUS, self.parse_infix_expression)
@@ -179,11 +180,14 @@ class Parser:
         block = ast.BlockStatement(self.cur_token)
         self.next_token()
 
+        statements = []
         while not self.cur_token_is(TokenType.RBRACE) and not self.cur_token_is(TokenType.EOF):
             stmt = self.parse_statement()
             if stmt:
-                block.statements.append(stmt)
+                statements.append(stmt)
             self.next_token()
+
+        block.statements = statements
         return block
 
     def parse_infix_expression(self, left: ast.Expression) -> ast.Expression:
@@ -221,6 +225,42 @@ class Parser:
             return None
         
         return exp
+
+    def parse_function_literal(self) -> ast.FunctionLiteral:
+        literal = ast.FunctionLiteral(self.cur_token)
+
+        if not self.expect_peek(TokenType.LPAREN):
+            return None
+        literal.parameters = self.parse_function_parameters()
+
+        if not self.expect_peek(TokenType.LBRACE):
+            return None
+        literal.body = self.parse_block_statement()
+
+        return literal
+
+    def parse_function_parameters(self) -> "list[ast.Identifier]":
+        identifiers: list[ast.Identifier] = []
+
+        if self.peek_token_is(TokenType.RPAREN):
+            self.next_token()
+            return identifiers
+
+        self.next_token()
+
+        ident = ast.Identifier(self.cur_token, self.cur_token.literal)
+        identifiers.append(ident)
+
+        while self.peek_token_is(TokenType.COMMA):
+            self.next_token()
+            self.next_token()
+            ident = ast.Identifier(self.cur_token, self.cur_token.literal)
+            identifiers.append(ident)
+
+        if not self.expect_peek(TokenType.RPAREN):
+            return None
+        
+        return identifiers
 
     def expect_peek(self, t: TokenType) -> bool:
         if self.peek_token_is(t):
