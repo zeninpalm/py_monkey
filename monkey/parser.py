@@ -91,7 +91,10 @@ class Parser:
             return None
         stmt.name = name
         
-        while not self.cur_token_is(TokenType.SEMICOLON):
+        self.next_token()
+
+        stmt.value = self.parse_expression(Precedence.LOWEST)
+        if self.peek_token_is(TokenType.SEMICOLON):
             self.next_token()
         
         return stmt

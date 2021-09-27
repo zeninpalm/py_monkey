@@ -10,23 +10,25 @@ from monkey.token import Token, TokenType
 
 class ParserTest(unittest.TestCase):
     def test_let_statements(self):
-        input = r'''
-    let x = 5;
-    let y = 10;
-    let foobar = 838383;
-    '''
+        tests = [
+            ("let x = 5;", "x", 5),
+            ("let y = true;", "y", "true"),
+            ("let foobar = y;", "foobar", "y"),
+        ]
 
-        l = Lexer(input)
-        p = Parser(l)
+        for t in tests:
+            l = Lexer(t[0])
+            p = Parser(l)
 
-        program = p.parse_program()
-        assert program is not None
-        assert len(program.statements) == 3
+            program = p.parse_program()
+            assert program is not None
+            assert len(program.statements) == 1
 
-        tests = ["x", "y", "foobar"]
-        for i, tt in enumerate(tests):
-            statement = program.statements[i]
-            assert self.match_let_statement(statement, tt)
+            statement: AST.LetStatement = program.statements[0]
+            assert self.match_let_statement(statement, t[1])
+
+            val = statement.value
+            assert self.test_literal_expression(val, t[2])
 
     def match_let_statement(self, stmt: AST.Statement, name: str) -> bool:
         assert stmt.token_literal() == "let"
@@ -294,7 +296,7 @@ class ParserTest(unittest.TestCase):
         if boolean.value != value:
             return False
 
-        if boolean.token_literal() != ('True' if value else 'false'):
+        if boolean.token_literal() != ('true' if value else 'false'):
             return False
 
         return True
