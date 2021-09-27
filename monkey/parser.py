@@ -103,7 +103,9 @@ class Parser:
         stmt = ast.ReturnStatement(self.cur_token)
         self.next_token()
 
-        while not self.cur_token_is(TokenType.SEMICOLON):
+        stmt.return_value = self.parse_expression(Precedence.LOWEST)
+
+        if self.peek_token_is(TokenType.SEMICOLON):
             self.next_token()
         
         return stmt
