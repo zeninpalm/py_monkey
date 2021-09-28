@@ -1,8 +1,10 @@
 from . import ast
-from .object import Object
+from . import objects
+from .objects import Object
+
 
 class Evaluator:
-    @classmethod
-    def eval(cls, node: ast.Node) -> Object:
-        if isinstance(node, ast.IntegerLiteral):
-            pass
+    def eval(self, node: ast.Node) -> Object:
+        for stmt in node.statements:
+            if isinstance(stmt.expression, ast.IntegerLiteral):
+                return objects.Integer(stmt.expression.value)
