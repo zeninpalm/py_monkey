@@ -8,7 +8,6 @@ from monkey.evaluator import Evaluator
 from monkey.lexer import Lexer
 from monkey.parser import Parser
 from monkey.objects import Object
-from monkey.token import Token, TokenType
 
 
 class EvalTest(unittest.TestCase):
@@ -17,7 +16,7 @@ class EvalTest(unittest.TestCase):
             ("5", 5),
             ("10", 10),
         ]
-        
+
         for t in tests:
             evaluated = self.test_eval(t[0])
             self.test_integer_object(evaluated, t[1])
