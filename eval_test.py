@@ -21,6 +21,16 @@ class EvalTest(unittest.TestCase):
             evaluated = self.test_eval(t[0])
             self.test_integer_object(evaluated, t[1])
 
+    def test_eval_boolean_expression(self):
+        tests = [
+            ("true", True),
+            ("false", False),
+        ]
+
+        for t in tests:
+            evaluated = self.test_eval(t[0])
+            self.test_boolean_object(evaluated, t[1])
+
     @pytest.mark.skip(reason="Don't test helper function")
     def test_eval(self, input: str) -> Object:
         l = Lexer(input)
@@ -30,6 +40,13 @@ class EvalTest(unittest.TestCase):
 
     @pytest.mark.skip(reason="Don't test helper function")
     def test_integer_object(self, obj: Object, expected: int) -> bool:
+        result: OBJ = obj
+        if result.value != expected:
+            return False
+        return True
+
+    @pytest.mark.skip(reason="Don't test helper function")
+    def test_boolean_object(self, obj: Object, expected: bool) -> bool:
         result: OBJ = obj
         if result.value != expected:
             return False

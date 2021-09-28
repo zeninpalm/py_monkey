@@ -11,6 +11,8 @@ class Evaluator:
             return self.eval(node.expression)
         elif isinstance(node, ast.IntegerLiteral):
             return objects.Integer(node.value)
+        elif isinstance(node, ast.Boolean):
+            return objects.Boolean(node.value)
 
     def eval_statements(self, stmts: "list[ast.Statement]") -> Object:
         result: Object = None
