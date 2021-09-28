@@ -31,6 +31,20 @@ class EvalTest(unittest.TestCase):
             evaluated = self.test_eval(t[0])
             self.test_boolean_object(evaluated, t[1])
 
+    def test_eval_bang_operators(self):
+        tests = [
+            ("!true", False),
+            ("!false", True),
+            ("!5", False),
+            ("!!true", True),
+            ("!!false", False),
+            ("!!5", True),
+        ]
+
+        for t in tests:
+            evaluated = self.test_eval(t[0])
+            self.test_boolean_object(evaluated, t[1])
+
     @pytest.mark.skip(reason="Don't test helper function")
     def test_eval(self, input: str) -> Object:
         l = Lexer(input)

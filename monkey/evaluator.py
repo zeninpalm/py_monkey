@@ -3,6 +3,10 @@ from . import objects
 from .objects import Object
 
 
+TRUE = objects.Boolean(True)
+FALSE = objects.Boolean(False)
+NULL = objects.Null()
+
 class Evaluator:
     def eval(self, node: ast.Node) -> Object:
         if isinstance(node, ast.Program):
@@ -12,7 +16,10 @@ class Evaluator:
         elif isinstance(node, ast.IntegerLiteral):
             return objects.Integer(node.value)
         elif isinstance(node, ast.Boolean):
-            return objects.Boolean(node.value)
+            return self.native_bool_to_boolean_object(node.value)
+        elif isinstance(node, ast.PrefixExpression):
+            right = self.eval(node.right)
+            return self.eval_prefix_expression(node.operator, right)
 
     def eval_statements(self, stmts: "list[ast.Statement]") -> Object:
         result: Object = None
@@ -21,3 +28,23 @@ class Evaluator:
             result = self.eval(statement)
 
         return result
+
+    def eval_prefix_expression(self, operator: str, right: objects.Object) -> objects.Object:
+        if operator == '!':
+            return self.eval_bang_operator_expression(right)
+
+    def native_bool_to_boolean_object(self, value: bool) -> objects.Boolean:
+        if value:
+            return TRUE
+        else:
+            return FALSE
+
+    def eval_bang_operator_expression(self, right: objects.Object) -> objects.Object:
+        if right == TRUE:
+            return FALSE
+        elif right == FALSE:
+            return TRUE
+        elif right == NULL:
+            return TRUE
+        else:
+            return FALSE
