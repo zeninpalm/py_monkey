@@ -1,5 +1,6 @@
 import sys
 
+from monkey.evaluator import Evaluator
 from monkey.lexer import Lexer
 from monkey.parser import Parser
 from monkey.token import Token, TokenType
@@ -14,7 +15,10 @@ def start():
         lexer = Lexer(line)
         parser = Parser(lexer)
         program = parser.parse_program()
-        print(f'{program}\n')
+        evaluated = Evaluator().eval(program)
+
+        if evaluated:
+            print(evaluated.inspect())
 
 if __name__ == '__main__':
     start()
