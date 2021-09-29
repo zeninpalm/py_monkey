@@ -20,6 +20,10 @@ class Evaluator:
         elif isinstance(node, ast.PrefixExpression):
             right = self.eval(node.right)
             return self.eval_prefix_expression(node.operator, right)
+        elif isinstance(node, ast.InfixExpression):
+            left = self.eval(node.left)
+            right = self.eval(node.right)
+            return self.eval_infix_expression(node.operator, left, right)
 
     def eval_statements(self, stmts: "list[ast.Statement]") -> Object:
         result: Object = None
@@ -56,3 +60,30 @@ class Evaluator:
             return None
 
         return objects.Integer(right.value)
+
+    def eval_infix_expression(self, operator: str, left: objects.Object, right: objects.Object) -> objects.Object:
+        if left.type() != objects.INTEGER_OBJ or right.type() != objects.INTEGER_OBJ:
+            return None
+
+        return self.eval_integer_infix_expression(operator, left, right)
+
+    def eval_integer_infix_expression(self, operator: str, left: objects.Integer, right: objects.Integer) -> objects.Integer:
+        left_val = left.value
+        right_val = right.value
+
+        if operator == '+':
+            return objects.Integer(left_val + right_val)
+        elif operator == '-':
+            return objects.Integer(left_val - right_val)
+        elif operator == '*':
+            return objects.Integer(left_val * right_val)
+        elif operator == '/':
+            return objects.Integer(left_val / right_val)
+        elif operator == '<':
+            return self.native_bool_to_boolean_object(left_val < right_val)
+        elif operator == '>':
+            return self.native_bool_to_boolean_object(left_val > right_val)
+        elif operator == '==':
+            return self.native_bool_to_boolean_object(left_val == right_val)
+        elif operator == '!=':
+            return self.native_bool_to_boolean_object(left_val != right_val)
