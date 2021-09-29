@@ -75,6 +75,25 @@ class EvalTest(unittest.TestCase):
             evaluated = self.test_eval(t[0])
             self.test_boolean_object(evaluated, t[1])
 
+    def test_if_else_expressions(self):
+        tests = [
+            ("if (true) { 10 }", 10),
+            ("if (false) { 10 }", None),
+            ("if (1) { 10 }", 10),
+            ("if (1 < 2) { 10 }", 10),
+            ("if (1 > 2) { 10 }", None),
+            ("if (1 > 2) { 10 } else { 20 }", 20),
+            ("if (1 < 2) { 10 } else { 20 }", 10),
+        ]
+
+        for t in tests:
+            print(t[0])
+            evaluated = self.test_eval(t[0])
+            if isinstance(t[1], int):
+                self.test_integer_object(evaluated, t[1])
+            else:
+                self.test_null_object(evaluated)
+
     @pytest.mark.skip(reason="Don't test helper function")
     def test_eval(self, input: str) -> Object:
         l = Lexer(input)
@@ -95,3 +114,9 @@ class EvalTest(unittest.TestCase):
         if result.value != expected:
             return False
         return True
+
+    @pytest.mark.skip(reason="Don't test helper function")
+    def test_null_object(self, obj: Object) -> bool:
+        if not obj:
+            return True
+        return False

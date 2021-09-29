@@ -24,9 +24,17 @@ class Evaluator:
             left = self.eval(node.left)
             right = self.eval(node.right)
             return self.eval_infix_expression(node.operator, left, right)
+        elif isinstance(node, ast.IfExpression):
+            condition = self.eval(node.condition)
+            if condition not in [FALSE, NULL]:
+                return self.eval(node.consequence)
+            else:
+                return self.eval(node.alternative)
+        elif isinstance(node, ast.BlockStatement):
+            return self.eval_statements(node.statements)
 
     def eval_statements(self, stmts: "list[ast.Statement]") -> Object:
-        result: Object = None
+        result = None
 
         for statement in stmts:
             result = self.eval(statement)
