@@ -1,6 +1,7 @@
 INTEGER_OBJ = "INTEGER"
 BOOLEAN_OBJ = "BOOLEAN"
 NULL_OBJ = "NULL"
+RETURN_VALUE_OBJ = "RETURN_VALUE"
 
 
 class Object:
@@ -39,3 +40,14 @@ class Null:
 
     def inspect(self) -> str:
         return "null"
+
+
+class ReturnValue:
+    def __init__(self, value: Object) -> None:
+        self.value = value
+
+    def type(self) -> str:
+        return RETURN_VALUE_OBJ
+
+    def inspect(self) -> str:
+        return self.value.inspect()

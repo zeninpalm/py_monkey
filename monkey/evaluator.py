@@ -32,12 +32,18 @@ class Evaluator:
                 return self.eval(node.alternative)
         elif isinstance(node, ast.BlockStatement):
             return self.eval_statements(node.statements)
+        elif isinstance(node, ast.ReturnStatement):
+            val = self.eval(node.return_value)
+            return objects.ReturnValue(val)
 
     def eval_statements(self, stmts: "list[ast.Statement]") -> Object:
         result = None
 
         for statement in stmts:
             result = self.eval(statement)
+
+            if isinstance(result, objects.ReturnValue):
+                return result.value
 
         return result
 

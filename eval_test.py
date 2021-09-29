@@ -94,6 +94,18 @@ class EvalTest(unittest.TestCase):
             else:
                 self.test_null_object(evaluated)
 
+    def test_return_statements(self):
+        tests = [
+            ("return 10;", 10),
+            ("return 10; 9;", 10),
+            ("return 2 * 5; 9;", 10),
+            ("9; return 2 * 5; 9;", 10),
+        ]
+
+        for t in tests:
+            evaluated = self.test_eval(t[0])
+            self.test_integer_object(evaluated, t[1])
+
     @pytest.mark.skip(reason="Don't test helper function")
     def test_eval(self, input: str) -> Object:
         l = Lexer(input)
