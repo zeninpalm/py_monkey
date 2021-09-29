@@ -62,10 +62,12 @@ class Evaluator:
         return objects.Integer(right.value)
 
     def eval_infix_expression(self, operator: str, left: objects.Object, right: objects.Object) -> objects.Object:
-        if left.type() != objects.INTEGER_OBJ or right.type() != objects.INTEGER_OBJ:
-            return None
-
-        return self.eval_integer_infix_expression(operator, left, right)
+        if left.type() == objects.INTEGER_OBJ or right.type() == objects.INTEGER_OBJ:
+            return self.eval_integer_infix_expression(operator, left, right)
+        elif operator == '==':
+            return self.native_bool_to_boolean_object(left == right)
+        elif operator == '!=':
+            return self.native_bool_to_boolean_object(left != right)
 
     def eval_integer_infix_expression(self, operator: str, left: objects.Integer, right: objects.Integer) -> objects.Integer:
         left_val = left.value
