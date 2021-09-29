@@ -10,7 +10,7 @@ NULL = objects.Null()
 class Evaluator:
     def eval(self, node: ast.Node) -> Object:
         if isinstance(node, ast.Program):
-            return self.eval_statements(node.statements)
+            return self.eval_program(node)
         elif isinstance(node, ast.ExpressionStatement):
             return self.eval(node.expression)
         elif isinstance(node, ast.IntegerLiteral):
@@ -31,19 +31,28 @@ class Evaluator:
             else:
                 return self.eval(node.alternative)
         elif isinstance(node, ast.BlockStatement):
-            return self.eval_statements(node.statements)
+            return self.eval_block_statements(node)
         elif isinstance(node, ast.ReturnStatement):
             val = self.eval(node.return_value)
             return objects.ReturnValue(val)
 
-    def eval_statements(self, stmts: "list[ast.Statement]") -> Object:
+    def eval_program(self, program: ast.Program) -> Object:
         result = None
-
-        for statement in stmts:
+        for statement in program.statements:
             result = self.eval(statement)
 
             if isinstance(result, objects.ReturnValue):
                 return result.value
+
+        return result
+
+    def eval_block_statements(self, block: ast.BlockStatement) -> Object:
+        result = None
+        for statement in block.statements:
+            result = self.eval(statement)
+
+            if result and result.type() == objects.RETURN_VALUE_OBJ:
+                return result
 
         return result
 

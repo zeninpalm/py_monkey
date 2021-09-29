@@ -87,7 +87,6 @@ class EvalTest(unittest.TestCase):
         ]
 
         for t in tests:
-            print(t[0])
             evaluated = self.test_eval(t[0])
             if isinstance(t[1], int):
                 self.test_integer_object(evaluated, t[1])
@@ -96,15 +95,20 @@ class EvalTest(unittest.TestCase):
 
     def test_return_statements(self):
         tests = [
-            ("return 10;", 10),
-            ("return 10; 9;", 10),
-            ("return 2 * 5; 9;", 10),
-            ("9; return 2 * 5; 9;", 10),
+
+            (r'''
+                if (10 > 1) {
+                    if (10 > 1) {
+                        return 10;
+                    }
+
+                    return 1;
+                }''', 10),
         ]
 
         for t in tests:
             evaluated = self.test_eval(t[0])
-            self.test_integer_object(evaluated, t[1])
+            assert self.test_integer_object(evaluated, t[1])
 
     @pytest.mark.skip(reason="Don't test helper function")
     def test_eval(self, input: str) -> Object:
