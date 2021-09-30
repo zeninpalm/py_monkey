@@ -110,6 +110,49 @@ class EvalTest(unittest.TestCase):
             evaluated = self.test_eval(t[0])
             assert self.test_integer_object(evaluated, t[1])
 
+    def test_error_handling(self):
+        tests = [
+            (
+                "5 + true;",
+                "Type mismatch: INTEGER + BOOLEAN",
+            ),
+            (
+                "5 + true; 5;",
+                "Type mismatch: INTEGER + BOOLEAN",
+            ),
+            (
+                "-true",
+                "Unknown operator: -BOOLEAN",
+            ),
+            (
+                "true + false;",
+                "Unknown operator: BOOLEAN + BOOLEAN",
+            ),
+            (
+                "5; true + false; 5",
+                "Unknown operator: BOOLEAN + BOOLEAN",
+            ),
+            (
+                "if (10 > 1) { true + false; }",
+                "Unknown operator: BOOLEAN + BOOLEAN",
+            ),
+            (
+                r'''
+    if (10 > 1) {
+    if (10 > 1) {
+        return true + false;
+    }
+
+    return 1;
+    }''', "Unknown operator: BOOLEAN + BOOLEAN",
+            ),
+        ]
+
+        for t in tests:
+            print(t[0])
+            evaluated = self.test_eval(t[0])
+            assert evaluated.message == t[1]
+
     @pytest.mark.skip(reason="Don't test helper function")
     def test_eval(self, input: str) -> Object:
         l = Lexer(input)

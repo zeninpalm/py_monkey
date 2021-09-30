@@ -1,7 +1,11 @@
+from logging import ERROR
+
+
 INTEGER_OBJ = "INTEGER"
 BOOLEAN_OBJ = "BOOLEAN"
 NULL_OBJ = "NULL"
 RETURN_VALUE_OBJ = "RETURN_VALUE"
+ERROR_OBJ = "ERROR"
 
 
 class Object:
@@ -51,3 +55,13 @@ class ReturnValue:
 
     def inspect(self) -> str:
         return self.value.inspect()
+
+class Error:
+    def __init__(self, message: str) -> None:
+        self.message = message
+
+    def type(self) -> str:
+        return ERROR_OBJ
+
+    def inspect(self) -> str:
+        return "ERROR: " + self.message

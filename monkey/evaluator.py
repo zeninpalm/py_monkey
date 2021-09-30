@@ -19,13 +19,24 @@ class Evaluator:
             return self.native_bool_to_boolean_object(node.value)
         elif isinstance(node, ast.PrefixExpression):
             right = self.eval(node.right)
+            if self.is_error(right):
+                return right
             return self.eval_prefix_expression(node.operator, right)
         elif isinstance(node, ast.InfixExpression):
             left = self.eval(node.left)
+            if self.is_error(left):
+                return left
+
             right = self.eval(node.right)
+            if self.is_error(right):
+                return right
+
             return self.eval_infix_expression(node.operator, left, right)
         elif isinstance(node, ast.IfExpression):
             condition = self.eval(node.condition)
+            if self.is_error(condition):
+                return condition
+
             if condition not in [FALSE, NULL]:
                 return self.eval(node.consequence)
             else:
@@ -34,6 +45,8 @@ class Evaluator:
             return self.eval_block_statements(node)
         elif isinstance(node, ast.ReturnStatement):
             val = self.eval(node.return_value)
+            if self.is_error(val):
+                return val
             return objects.ReturnValue(val)
 
     def eval_program(self, program: ast.Program) -> Object:
@@ -43,6 +56,8 @@ class Evaluator:
 
             if isinstance(result, objects.ReturnValue):
                 return result.value
+            elif isinstance(result, objects.Error):
+                return result
 
         return result
 
@@ -51,8 +66,10 @@ class Evaluator:
         for statement in block.statements:
             result = self.eval(statement)
 
-            if result and result.type() == objects.RETURN_VALUE_OBJ:
-                return result
+            if result:
+                rt = result.type()
+                if rt == objects.RETURN_VALUE_OBJ or rt == objects.ERROR_OBJ:
+                    return result
 
         return result
 
@@ -61,6 +78,8 @@ class Evaluator:
             return self.eval_bang_operator_expression(right)
         elif operator == '-':
             return self.eval_minus_prefix_operator_expression(right)
+        else:
+            return self.new_error(f"Unknown operator: {operator}{right.type()}")
 
     def native_bool_to_boolean_object(self, value: bool) -> objects.Boolean:
         if value:
@@ -80,17 +99,21 @@ class Evaluator:
 
     def eval_minus_prefix_operator_expression(self, right: objects.Object) -> objects.Object:
         if right.type() != objects.INTEGER_OBJ:
-            return None
+            return self.new_error(f"Unknown operator: -{right.type()}")
 
         return objects.Integer(right.value)
 
     def eval_infix_expression(self, operator: str, left: objects.Object, right: objects.Object) -> objects.Object:
-        if left.type() == objects.INTEGER_OBJ or right.type() == objects.INTEGER_OBJ:
+        if left.type() == objects.INTEGER_OBJ and right.type() == objects.INTEGER_OBJ:
             return self.eval_integer_infix_expression(operator, left, right)
         elif operator == '==':
             return self.native_bool_to_boolean_object(left == right)
         elif operator == '!=':
             return self.native_bool_to_boolean_object(left != right)
+        elif left.type() != right.type():
+            return self.new_error(f"Type mismatch: {left.type()} {operator} {right.type()}")
+        else:
+            return self.new_error(f"Unknown operator: {left.type()} {operator} {right.type()}")
 
     def eval_integer_infix_expression(self, operator: str, left: objects.Integer, right: objects.Integer) -> objects.Integer:
         left_val = left.value
@@ -112,3 +135,13 @@ class Evaluator:
             return self.native_bool_to_boolean_object(left_val == right_val)
         elif operator == '!=':
             return self.native_bool_to_boolean_object(left_val != right_val)
+        else:
+            return self.new_error(f"Unknown operator: {left.type()} {operator} {right.type()}")
+
+    def new_error(self, message: str) -> objects.Error:
+        return objects.Error(message=message)
+
+    def is_error(self, obj: objects.Object) -> bool:
+        if obj:
+            return obj.type() ==  objects.ERROR_OBJ
+        return False
