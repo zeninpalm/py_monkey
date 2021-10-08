@@ -44,6 +44,7 @@ class Parser:
         self.register_prefix(TokenType.LPAREN, self.parse_grouped_expression)
         self.register_prefix(TokenType.IF, self.parse_if_expression)
         self.register_prefix(TokenType.FUNCTION, self.parse_function_literal)
+        self.register_prefix(TokenType.STRING, self.parse_string_literal)
 
         self.register_infix(TokenType.PLUS, self.parse_infix_expression)
         self.register_infix(TokenType.MINUS, self.parse_infix_expression)
@@ -214,6 +215,9 @@ class Parser:
     def parse_integer_literal(self) -> ast.Expression:
         value = int(self.cur_token.literal)
         return ast.IntegerLiteral(self.cur_token, value)
+
+    def parse_string_literal(self) -> ast.Expression:
+        return ast.StringLiteral(self.cur_token, self.cur_token.literal)
 
     def parse_boolean(self) -> ast.Expression:
         return ast.Boolean(self.cur_token, self.cur_token_is(TokenType.TRUE))

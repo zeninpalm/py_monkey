@@ -249,6 +249,19 @@ class ParserTest(unittest.TestCase):
         assert self.test_infix_expression(exp.arguments[1], 2, "*", 3)
         assert self.test_infix_expression(exp.arguments[2], 4, "+", 5)
 
+    def test_string_literal_expression(self):
+        input = '"hello world"'
+
+        l = Lexer(input)
+        p = Parser(l)
+        program = p.parse_program()
+
+        assert len(program.statements) == 1
+
+        stmt: AST.ExpressionStatement = program.statements[0]
+        literal: AST.StringLiteral = stmt.expression
+        assert literal.value == "hello world"
+
     @pytest.mark.skip(reason="Don't test helper function")
     def test_integer_literal(self, exp: AST.Expression, value: int):
         integer: AST.IntegerLiteral = exp

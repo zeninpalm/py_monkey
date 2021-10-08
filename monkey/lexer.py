@@ -66,6 +66,8 @@ class Lexer:
             token = Token(TokenType.GT, self._ch)
         elif self._ch == None:
             token = Token(TokenType.EOF, self._ch)
+        elif self._ch == '"':
+            token = Token(TokenType.STRING, self.read_string())
         else:
             if self.is_letter(self._ch):
                 literal = self.read_identifier()
@@ -105,3 +107,13 @@ class Lexer:
             return None
         else:
             return self._input[self._read_position]
+
+    def read_string(self) -> str:
+        position = self._position + 1
+
+        while True:
+            self.read_char()
+            if self._ch == '"' or not self._ch:
+                break
+        
+        return self._input[position:self._position]

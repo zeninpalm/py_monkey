@@ -12,6 +12,7 @@ class TokenType(IntEnum):
     BANG=auto()
     ASTERISK=auto()
     SLASH=auto()
+    STRING=auto()
 
     LT=auto()
     GT=auto()

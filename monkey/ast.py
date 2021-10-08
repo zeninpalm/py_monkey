@@ -29,6 +29,22 @@ class Program(Node):
             out += str(s)
         return out
 
+
+class StringLiteral(Expression):
+    def __init__(self, token: Token, value: str) -> None:
+        self.token = token
+        self.value = value
+
+    def expression_node(self):
+        return None
+
+    def token_literal(self) -> str:
+        return self.token.literal
+
+    def __str__(self) -> str:
+        return self.token.literal
+
+
 class Identifier(Expression):
     def __init__(self, token: Token, value: str) -> None:
         self.token = token
