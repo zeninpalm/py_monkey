@@ -189,6 +189,14 @@ class EvalTest(unittest.TestCase):
         for t in tests:
             self.test_integer_object(self.test_eval(t[0]), t[1])
 
+    def test_string_literal(self):
+        input = '"Hello World!"'
+
+        evaluated = self.test_eval(input)
+        string_value: OBJ.String = evaluated
+
+        assert string_value.value == "Hello World!"
+
     @pytest.mark.skip(reason="Don't test helper function")
     def test_eval(self, input: str) -> Object:
         l = Lexer(input)

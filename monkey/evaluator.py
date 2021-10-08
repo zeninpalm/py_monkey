@@ -63,6 +63,8 @@ class Evaluator:
             params = node.parameters
             body = node.body
             return objects.Function(params, body, env)
+        elif isinstance(node, ast.StringLiteral):
+            return objects.String(node.value)
         elif isinstance(node, ast.CallExpression):
             function = self.eval(node.function, env)
             if self.is_error(function):

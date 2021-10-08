@@ -9,6 +9,7 @@ NULL_OBJ = "NULL"
 RETURN_VALUE_OBJ = "RETURN_VALUE"
 ERROR_OBJ = "ERROR"
 FUNCTION_OBJ = "FUNCTION"
+STRING_OBJ = "STRING"
 
 
 class Object:
@@ -84,3 +85,14 @@ class Function:
             parameters.append(p)
 
         return f"fn({', '.join(parameters)} {{\n{self.body}\n}}"
+
+
+class String:
+    def __init__(self, value: str) -> None:
+        self.value = value
+
+    def type(self) -> str:
+        return STRING_OBJ
+
+    def inspect(self) -> str:
+        return self.value
