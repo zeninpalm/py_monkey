@@ -6,6 +6,7 @@ import monkey.ast as AST
 import monkey.objects as OBJ
 from monkey.environment import Environment
 from monkey.evaluator import Evaluator
+from monkey.objects import Function
 from monkey.lexer import Lexer
 from monkey.parser import Parser
 from monkey.objects import Object
@@ -165,6 +166,28 @@ class EvalTest(unittest.TestCase):
 
         for test in tests:
             self.test_integer_object(self.test_eval(test[0]), test[1])
+
+    def test_function_object(self):
+        input = "fn(x) { x + 2; };"
+
+        fn: Function = self.test_eval(input)
+        
+        assert len(fn.parameters) == 1
+        assert str(fn.parameters[0]) == "x"
+        assert str(fn.body) == "(x + 2)"
+
+    def test_function_application(self):
+        tests = [
+            ("let identity = fn(x) { x; }; identity(5);", 5),
+            ("let identity = fn(x) { return x; }; identity(5);", 5),
+            ("let double = fn(x) { x * 2; }; double(5);", 10),
+            ("let add = fn(x, y) { x + y; }; add(5, 5);", 10),
+            ("let add = fn(x, y) { x + y; }; add(5 + 5, add(5, 5));", 20),
+            ("fn(x) { x; }(5)", 5),
+        ]
+
+        for t in tests:
+            self.test_integer_object(self.test_eval(t[0]), t[1])
 
     @pytest.mark.skip(reason="Don't test helper function")
     def test_eval(self, input: str) -> Object:

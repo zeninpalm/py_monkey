@@ -1,3 +1,4 @@
+from inspect import unwrap
 from . import ast
 from . import objects
 from .objects import Object
@@ -7,6 +8,7 @@ from .environment import Environment
 TRUE = objects.Boolean(True)
 FALSE = objects.Boolean(False)
 NULL = objects.Null()
+
 
 class Evaluator:
     def eval(self, node: ast.Node, env: Environment) -> Object:
@@ -57,6 +59,18 @@ class Evaluator:
                 env.set(node.name.value, val)
         elif isinstance(node, ast.Identifier):
             return self.eval_identifier(node, env)
+        elif isinstance(node, ast.FunctionLiteral):
+            params = node.parameters
+            body = node.body
+            return objects.Function(params, body, env)
+        elif isinstance(node, ast.CallExpression):
+            function = self.eval(node.function, env)
+            if self.is_error(function):
+                return function
+            args = self.eval_expressions(node.arguments, env)
+            if len(args) == 1 and self.is_error(args[0]):
+                return args[0]
+            return self.apply_function(function, args)
 
     def eval_program(self, program: ast.Program, env: Environment) -> Object:
         result = None
@@ -160,3 +174,33 @@ class Evaluator:
         if not val:
             return self.new_error(f"Identifier not found: {node.value}")
         return val
+
+    def eval_expressions(self, exps: "list[ast.Expression]", env: Environment) -> "list[objects.Object]":
+        result: list[objects.Object] = []
+
+        for e in exps:
+            evaluated = self.eval(e, env)
+            if self.is_error(evaluated):
+                return [evaluated]
+            result.append(evaluated)
+        
+        return result
+
+    def apply_function(self, fn: objects.Object, args: "list[objects.Object]") -> objects.Object:
+        extended_env = self.extend_function_env(fn, args)
+        evaluated = self.eval(fn.body, extended_env)
+        return self.unwrap_return_value(evaluated)
+
+    def extend_function_env(self, fn: objects.Function, args: "list[objects.Object]") -> Environment:
+        env = Environment(fn.env)
+
+        for index, param in enumerate(fn.parameters):
+            env.set(param.value, args[index])
+
+        return env
+
+    def unwrap_return_value(self, obj: objects.Object) -> objects.Object:
+        if isinstance(obj, objects.ReturnValue):
+            return obj.value
+        return obj
+    

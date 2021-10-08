@@ -1,4 +1,6 @@
 from logging import ERROR
+from monkey import ast
+from monkey.environment import Environment
 
 
 INTEGER_OBJ = "INTEGER"
@@ -6,6 +8,7 @@ BOOLEAN_OBJ = "BOOLEAN"
 NULL_OBJ = "NULL"
 RETURN_VALUE_OBJ = "RETURN_VALUE"
 ERROR_OBJ = "ERROR"
+FUNCTION_OBJ = "FUNCTION"
 
 
 class Object:
@@ -65,3 +68,19 @@ class Error:
 
     def inspect(self) -> str:
         return "ERROR: " + self.message
+
+class Function:
+    def __init__(self, parameters: "list[ast.Identifier]" = [], body: ast.BlockStatement = None, env: Environment = None) -> None:
+        self.parameters = parameters
+        self.body = body
+        self.env = env
+
+    def type(self) -> str:
+        return FUNCTION_OBJ
+
+    def inspect(self) -> str:
+        parameters = []
+        for p in self.parameters:
+            parameters.append(p)
+
+        return f"fn({', '.join(parameters)} {{\n{self.body}\n}}"

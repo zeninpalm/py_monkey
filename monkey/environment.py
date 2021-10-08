@@ -1,13 +1,18 @@
-from .objects import Object
-
-
 class Environment:
-    def __init__(self) -> None:
-        self.store : dict[str, Object] = {}
+    def __init__(self, outer: "Environment" = None) -> None:
+        self.store : dict[str, "Object"] = {}
+        if not outer:
+            self.outer = None
+        else:
+            self.outer = outer 
 
-    def get(self, name: str) -> Object:
-        return self.store.get(name)
+    def get(self, name: str) -> "Object":
+        obj = self.store.get(name)
+        if not obj and self.outer:
+            obj = self.outer.get(name)
 
-    def set(self, name: str, val: Object) -> None:
+        return obj
+
+    def set(self, name: str, val: "Object") -> None:
         self.store[name] = val
         return val
