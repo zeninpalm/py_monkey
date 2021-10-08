@@ -4,6 +4,7 @@ import pytest
 
 import monkey.ast as AST
 import monkey.objects as OBJ
+from monkey.environment import Environment
 from monkey.evaluator import Evaluator
 from monkey.lexer import Lexer
 from monkey.parser import Parser
@@ -146,6 +147,7 @@ class EvalTest(unittest.TestCase):
     return 1;
     }''', "Unknown operator: BOOLEAN + BOOLEAN",
             ),
+            ("foobar", "Identifier not found: foobar"),
         ]
 
         for t in tests:
@@ -153,12 +155,24 @@ class EvalTest(unittest.TestCase):
             evaluated = self.test_eval(t[0])
             assert evaluated.message == t[1]
 
+    def test_let_statements(self):
+        tests = [
+            ("let a = 5; a;", 5),
+            ("let a= 5 * 5; a;", 25),
+            ("let a = 5; let b = a; b;", 5),
+            ("let a= 5; let b= a; let c = a + b + 5; c;", 15),
+        ]
+
+        for test in tests:
+            self.test_integer_object(self.test_eval(test[0]), test[1])
+
     @pytest.mark.skip(reason="Don't test helper function")
     def test_eval(self, input: str) -> Object:
         l = Lexer(input)
         p = Parser(l)
         program = p.parse_program()
-        return Evaluator().eval(program)
+        env = Environment()
+        return Evaluator().eval(program, env)
 
     @pytest.mark.skip(reason="Don't test helper function")
     def test_integer_object(self, obj: Object, expected: int) -> bool:

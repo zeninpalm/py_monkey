@@ -1,6 +1,7 @@
 from . import ast
 from . import objects
 from .objects import Object
+from .environment import Environment
 
 
 TRUE = objects.Boolean(True)
@@ -8,51 +9,59 @@ FALSE = objects.Boolean(False)
 NULL = objects.Null()
 
 class Evaluator:
-    def eval(self, node: ast.Node) -> Object:
+    def eval(self, node: ast.Node, env: Environment) -> Object:
         if isinstance(node, ast.Program):
-            return self.eval_program(node)
+            return self.eval_program(node, env)
         elif isinstance(node, ast.ExpressionStatement):
-            return self.eval(node.expression)
+            return self.eval(node.expression, env)
         elif isinstance(node, ast.IntegerLiteral):
             return objects.Integer(node.value)
         elif isinstance(node, ast.Boolean):
             return self.native_bool_to_boolean_object(node.value)
         elif isinstance(node, ast.PrefixExpression):
-            right = self.eval(node.right)
+            right = self.eval(node.right, env)
             if self.is_error(right):
                 return right
             return self.eval_prefix_expression(node.operator, right)
         elif isinstance(node, ast.InfixExpression):
-            left = self.eval(node.left)
+            left = self.eval(node.left, env)
             if self.is_error(left):
                 return left
 
-            right = self.eval(node.right)
+            right = self.eval(node.right, env)
             if self.is_error(right):
                 return right
 
             return self.eval_infix_expression(node.operator, left, right)
         elif isinstance(node, ast.IfExpression):
-            condition = self.eval(node.condition)
+            condition = self.eval(node.condition, env)
             if self.is_error(condition):
                 return condition
 
             if condition not in [FALSE, NULL]:
-                return self.eval(node.consequence)
+                return self.eval(node.consequence, env)
             else:
-                return self.eval(node.alternative)
+                return self.eval(node.alternative, env)
         elif isinstance(node, ast.BlockStatement):
-            return self.eval_block_statements(node)
+            return self.eval_block_statements(node, env)
         elif isinstance(node, ast.ReturnStatement):
-            val = self.eval(node.return_value)
+            val = self.eval(node.return_value, env)
             if self.is_error(val):
                 return val
             return objects.ReturnValue(val)
+        elif isinstance(node, ast.LetStatement):
+            val = self.eval(node.value, env)
+            if self.is_error(val):
+                return val
+            else:
+                env.set(node.name.value, val)
+        elif isinstance(node, ast.Identifier):
+            return self.eval_identifier(node, env)
 
-    def eval_program(self, program: ast.Program) -> Object:
+    def eval_program(self, program: ast.Program, env: Environment) -> Object:
         result = None
         for statement in program.statements:
-            result = self.eval(statement)
+            result = self.eval(statement, env)
 
             if isinstance(result, objects.ReturnValue):
                 return result.value
@@ -61,10 +70,10 @@ class Evaluator:
 
         return result
 
-    def eval_block_statements(self, block: ast.BlockStatement) -> Object:
+    def eval_block_statements(self, block: ast.BlockStatement, env: Environment) -> Object:
         result = None
         for statement in block.statements:
-            result = self.eval(statement)
+            result = self.eval(statement, env)
 
             if result:
                 rt = result.type()
@@ -145,3 +154,9 @@ class Evaluator:
         if obj:
             return obj.type() ==  objects.ERROR_OBJ
         return False
+
+    def eval_identifier(self, node: ast.Identifier, env: Environment) -> objects.Object:
+        val = env.get(node.value)
+        if not val:
+            return self.new_error(f"Identifier not found: {node.value}")
+        return val
