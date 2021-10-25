@@ -10,6 +10,7 @@ RETURN_VALUE_OBJ = "RETURN_VALUE"
 ERROR_OBJ = "ERROR"
 FUNCTION_OBJ = "FUNCTION"
 STRING_OBJ = "STRING"
+BUILTIN_OBJ = "BUILTIN"
 
 
 class Object:
@@ -96,3 +97,14 @@ class String:
 
     def inspect(self) -> str:
         return self.value
+
+
+class Builtin:
+    def __init__(self, fn = None):
+        self._fn = fn
+
+    def type(self) -> str:
+        return BUILTIN_OBJ
+
+    def inspect(self) -> str:
+        return "builtin function"

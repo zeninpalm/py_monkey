@@ -10,6 +10,9 @@ FALSE = objects.Boolean(False)
 NULL = objects.Null()
 
 
+def new_error(message: str) -> objects.Error:
+    return objects.Error(message=message)
+
 class Evaluator:
     def eval(self, node: ast.Node, env: Environment) -> Object:
         if isinstance(node, ast.Program):
@@ -104,7 +107,7 @@ class Evaluator:
         elif operator == '-':
             return self.eval_minus_prefix_operator_expression(right)
         else:
-            return self.new_error(f"Unknown operator: {operator}{right.type()}")
+            return new_error(f"Unknown operator: {operator}{right.type()}")
 
     def native_bool_to_boolean_object(self, value: bool) -> objects.Boolean:
         if value:
@@ -124,7 +127,7 @@ class Evaluator:
 
     def eval_minus_prefix_operator_expression(self, right: objects.Object) -> objects.Object:
         if right.type() != objects.INTEGER_OBJ:
-            return self.new_error(f"Unknown operator: -{right.type()}")
+            return new_error(f"Unknown operator: -{right.type()}")
 
         return objects.Integer(right.value)
 
@@ -136,9 +139,11 @@ class Evaluator:
         elif operator == '!=':
             return self.native_bool_to_boolean_object(left != right)
         elif left.type() != right.type():
-            return self.new_error(f"Type mismatch: {left.type()} {operator} {right.type()}")
+            return new_error(f"Type mismatch: {left.type()} {operator} {right.type()}")
+        elif left.type() == objects.STRING_OBJ and right.type() == objects.STRING_OBJ:
+            return self.eval_string_infix_expression(operator, left, right)
         else:
-            return self.new_error(f"Unknown operator: {left.type()} {operator} {right.type()}")
+            return new_error(f"Unknown operator: {left.type()} {operator} {right.type()}")
 
     def eval_integer_infix_expression(self, operator: str, left: objects.Integer, right: objects.Integer) -> objects.Integer:
         left_val = left.value
@@ -161,10 +166,14 @@ class Evaluator:
         elif operator == '!=':
             return self.native_bool_to_boolean_object(left_val != right_val)
         else:
-            return self.new_error(f"Unknown operator: {left.type()} {operator} {right.type()}")
+            return new_error(f"Unknown operator: {left.type()} {operator} {right.type()}")
 
-    def new_error(self, message: str) -> objects.Error:
-        return objects.Error(message=message)
+    def eval_string_infix_expression(self, operator: str, left: objects.Object, right: objects.Object):
+        if operator != '+':
+            return new_error("Unknow operator: %s %s %s", left.type(), operator, right.type())
+        left_val = left.value
+        right_val = right.value
+        return objects.String(left_val + right_val)
 
     def is_error(self, obj: objects.Object) -> bool:
         if obj:
@@ -172,10 +181,16 @@ class Evaluator:
         return False
 
     def eval_identifier(self, node: ast.Identifier, env: Environment) -> objects.Object:
+        from . import builtins
         val = env.get(node.value)
-        if not val:
-            return self.new_error(f"Identifier not found: {node.value}")
-        return val
+        if val:
+            return val
+
+        builtin = builtins.builtins.get(node.value)
+        if builtin:
+            return builtin
+
+        return new_error(f"Identifier not found: {node.value}")
 
     def eval_expressions(self, exps: "list[ast.Expression]", env: Environment) -> "list[objects.Object]":
         result: list[objects.Object] = []
@@ -189,9 +204,14 @@ class Evaluator:
         return result
 
     def apply_function(self, fn: objects.Object, args: "list[objects.Object]") -> objects.Object:
-        extended_env = self.extend_function_env(fn, args)
-        evaluated = self.eval(fn.body, extended_env)
-        return self.unwrap_return_value(evaluated)
+        if fn.type() == objects.FUNCTION_OBJ:
+            extended_env = self.extend_function_env(fn, args)
+            evaluated = self.eval(fn.body, extended_env)
+            return self.unwrap_return_value(evaluated)
+        elif fn.type() == objects.BUILTIN_OBJ:
+            return fn._fn(*args)
+        else:
+            return new_error(f"not a function: {fn.type()}")
 
     def extend_function_env(self, fn: objects.Function, args: "list[objects.Object]") -> Environment:
         env = Environment(fn.env)

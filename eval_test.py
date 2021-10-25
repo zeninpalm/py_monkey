@@ -224,3 +224,32 @@ class EvalTest(unittest.TestCase):
         if not obj:
             return True
         return False
+
+    def test_string_literal(self):
+        input = '"Hello World!"'
+        evaluated = self.test_eval(input)
+
+        assert evaluated.value == "Hello World!"
+
+    def test_string_concatenation(self):
+        input = '"Hello" + " " + "World!"'
+
+        evaluated: str = self.test_eval(input)
+        assert evaluated.value == "Hello World!"
+
+    def test_builtin_functions(self):
+        tests = [
+            ('len("")', 0),
+            ('len("four")', 4),
+            ('len("hello world")', 11),
+            ('len(1)', "argument to 'len' is not supported, got INTEGER"),
+            ('len("one", "two")', "wrong number of arguments, got=2, want=1"),
+        ]
+
+        for test in tests:
+            evaluated = self.test_eval(test[0])
+
+            if isinstance(test[1], int):
+                self.test_integer_object(evaluated, test[1])
+            elif isinstance(test[1], str):
+                assert evaluated.message == test[1]
